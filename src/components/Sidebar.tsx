@@ -33,12 +33,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [showAddFolder, setShowAddFolder] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState('');
-  const [draggedFolder, setDraggedFolder] = React.useState<string | null>(null);
-  const [isDragOverTrash, setIsDragOverTrash] = React.useState(false);
   const [draggedOverFolder, setDraggedOverFolder] = React.useState<string | null>(null);
-  const [isReordering, setIsReordering] = React.useState(false);
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
+  const [draggedFolder, setDraggedFolder] = React.useState<string | null>(null);
 
   const menuItems = [
     { id: 'all', label: t(language, 'allLinks'), icon: Folder, count: null },
@@ -73,39 +71,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setDraggedFolder(null);
     setDraggedIndex(null);
     setDragOverIndex(null);
-    setIsDragOverTrash(false);
     setDraggedOverFolder(null);
-    setIsReordering(false);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setIsDragOverTrash(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    // Only hide if we're leaving the trash area completely
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOverTrash(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const folderName = e.dataTransfer.getData('text/plain');
-    if (folderName && draggedFolder) {
-      handleDeleteFolder(folderName);
-    }
-    setIsDragOverTrash(false);
-    setDraggedFolder(null);
   };
 
   const handleFolderDragOver = (e: React.DragEvent, targetFolder: string) => {
     e.preventDefault();
     const targetIndex = folders.indexOf(targetFolder);
     if (draggedFolder && draggedFolder !== targetFolder && draggedIndex !== null) {
-      setIsReordering(true);
       setDraggedOverFolder(targetFolder);
       setDragOverIndex(targetIndex);
       e.dataTransfer.dropEffect = 'move';
@@ -137,7 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setDragOverIndex(null);
     setDraggedFolder(null);
     setDraggedIndex(null);
-    setIsReordering(false);
   };
 
   return (
@@ -312,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     ? 'opacity-50 scale-95 rotate-2' 
                     : ''
                 } ${
-                  dragOverIndex === index && isReordering && draggedIndex !== index
+                  dragOverIndex === index && draggedIndex !== null && draggedIndex !== index
                     ? darkMode 
                       ? 'bg-blue-800/50 border-2 border-blue-500 border-dashed transform scale-105' 
                       : 'bg-blue-50 border-2 border-blue-300 border-dashed transform scale-105'
@@ -374,40 +345,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             
           </div>
         </div>
-
-        {/* Drag to Delete Area */}
-        {draggedFolder && (
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`fixed bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 p-4 md:p-6 rounded-xl border-2 border-dashed transition-all duration-300 z-50 ${
-              isDragOverTrash
-                ? darkMode
-                  ? 'border-red-400 bg-red-900/20 text-red-300'
-                  : 'border-red-400 bg-red-50 text-red-600'
-                : darkMode
-                  ? 'border-gray-600 bg-gray-800/90 text-gray-400'
-                  : 'border-gray-300 bg-white/90 text-gray-600'
-            } ${
-              isDragOverTrash ? 'scale-105 shadow-2xl' : 'scale-100'
-            }`}
-          >
-            <div className="flex items-center justify-center space-x-3">
-              <Trash2 className={`w-6 h-6 md:w-8 md:h-8 transition-all duration-300 ${
-                isDragOverTrash ? 'scale-125 animate-bounce' : ''
-              }`} />
-              <div className="text-center">
-                <p className="font-semibold text-sm md:text-lg">
-                  {isDragOverTrash ? t(language, 'dropToDelete') : t(language, 'dragToDelete')}
-                </p>
-                <p className="text-xs md:text-sm opacity-75">
-                  {t(language, 'allLinksWillMove')}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Popular Tags */}
         <div>
