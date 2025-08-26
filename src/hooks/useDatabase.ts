@@ -9,6 +9,7 @@ import {
   loadSettings,
   DatabaseSettings 
 } from '../utils/database';
+import { saveState, loadState } from '../utils/storage';
 import { mockLinks } from '../data/mockData';
 
 export const useDatabase = () => {
@@ -18,13 +19,17 @@ export const useDatabase = () => {
   useEffect(() => {
     const initializeDatabase = () => {
       try {
+        // فحص ما إذا كان هذا أول تشغيل للتطبيق
+        const isFirstRun = !loadState('app_initialized', false);
+        
         // Check if this is the first time loading the app
         const existingLinks = loadLinks();
         const existingFolders = loadFolders();
         
-        // If no data exists, load mock data
-        if (existingLinks.length === 0) {
+        // If no data exists or first run, load mock data
+        if (existingLinks.length === 0 || isFirstRun) {
           saveLinks(mockLinks);
+          saveState('app_initialized', true);
         }
         
         // Ensure default folders exist
@@ -41,6 +46,9 @@ export const useDatabase = () => {
           });
         }
         
+        // حفظ وقت آخر تشغيل
+        saveState('last_startup', new Date().toISOString());
+        
         setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing database:', error);
@@ -54,14 +62,18 @@ export const useDatabase = () => {
   // Auto-save functions
   const saveLinksToDatabase = (links: Link[]) => {
     saveLinks(links);
+    // حفظ وقت آخر تحديث
+    saveState('last_links_update', new Date().toISOString());
   };
 
   const saveFoldersToDatabase = (folders: string[]) => {
     saveFolders(folders);
+    saveState('last_folders_update', new Date().toISOString());
   };
 
   const saveSettingsToDatabase = (settings: DatabaseSettings) => {
     saveSettings(settings);
+    saveState('last_settings_update', new Date().toISOString());
   };
 
   return {

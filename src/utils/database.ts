@@ -1,10 +1,11 @@
 import { Link } from '../types';
+import { saveState, loadState } from './storage';
 
 // Database keys
-const STORAGE_KEYS = {
-  LINKS: 'mywaslat_links',
-  FOLDERS: 'mywaslat_folders',
-  SETTINGS: 'mywaslat_settings'
+const DATA_KEYS = {
+  LINKS: 'links',
+  FOLDERS: 'folders', 
+  SETTINGS: 'settings'
 };
 
 // Database interface
@@ -22,7 +23,7 @@ export const saveLinks = (links: Link[]): void => {
       ...link,
       createdAt: link.createdAt.toISOString()
     }));
-    localStorage.setItem(STORAGE_KEYS.LINKS, JSON.stringify(serializedLinks));
+    saveState(DATA_KEYS.LINKS, serializedLinks);
   } catch (error) {
     console.error('Error saving links:', error);
   }
@@ -30,11 +31,10 @@ export const saveLinks = (links: Link[]): void => {
 
 export const loadLinks = (): Link[] => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.LINKS);
-    if (!stored) return [];
+    const stored = loadState(DATA_KEYS.LINKS, []);
+    if (!Array.isArray(stored)) return [];
     
-    const parsed = JSON.parse(stored);
-    return parsed.map((link: any) => ({
+    return stored.map((link: any) => ({
       ...link,
       createdAt: new Date(link.createdAt)
     }));
@@ -47,7 +47,7 @@ export const loadLinks = (): Link[] => {
 // Folders operations
 export const saveFolders = (folders: string[]): void => {
   try {
-    localStorage.setItem(STORAGE_KEYS.FOLDERS, JSON.stringify(folders));
+    saveState(DATA_KEYS.FOLDERS, folders);
   } catch (error) {
     console.error('Error saving folders:', error);
   }
@@ -55,10 +55,10 @@ export const saveFolders = (folders: string[]): void => {
 
 export const loadFolders = (): string[] => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.FOLDERS);
-    if (!stored) return ['Work', 'Study', 'Fun', 'Personal'];
+    const stored = loadState(DATA_KEYS.FOLDERS, ['Work', 'Study', 'Fun', 'Personal']);
+    if (!Array.isArray(stored)) return ['Work', 'Study', 'Fun', 'Personal'];
     
-    return JSON.parse(stored);
+    return stored;
   } catch (error) {
     console.error('Error loading folders:', error);
     return ['Work', 'Study', 'Fun', 'Personal'];
@@ -68,7 +68,7 @@ export const loadFolders = (): string[] => {
 // Settings operations
 export const saveSettings = (settings: DatabaseSettings): void => {
   try {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    saveState(DATA_KEYS.SETTINGS, settings);
   } catch (error) {
     console.error('Error saving settings:', error);
   }
@@ -76,17 +76,15 @@ export const saveSettings = (settings: DatabaseSettings): void => {
 
 export const loadSettings = (): DatabaseSettings => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (!stored) {
-      return {
-        darkMode: false,
-        language: 'ar',
-        viewLayout: 'grid',
-        currentView: 'all'
-      };
-    }
+    const defaultSettings = {
+      darkMode: false,
+      language: 'ar' as const,
+      viewLayout: 'grid' as const,
+      currentView: 'all'
+    };
     
-    const settings = JSON.parse(stored);
+    const settings = loadState(DATA_KEYS.SETTINGS, defaultSettings);
+    
     // Ensure language property exists for backward compatibility
     if (!settings.language) {
       settings.language = 'ar';
@@ -106,7 +104,14 @@ export const loadSettings = (): DatabaseSettings => {
 // Clear all data
 export const clearDatabase = (): void => {
   try {
-    Object.values(STORAGE_KEYS).forEach(key => {
+    // مسح البيانات من النظام الجديد
+    Object.values(DATA_KEYS).forEach(key => {
+      saveState(key, null);
+    });
+    
+    // مسح البيانات القديمة للتوافق مع الإصدارات السابقة
+    const oldKeys = ['mywaslat_links', 'mywaslat_folders', 'mywaslat_settings'];
+    oldKeys.forEach(key => {
       localStorage.removeItem(key);
     });
     
