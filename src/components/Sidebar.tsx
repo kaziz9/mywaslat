@@ -249,10 +249,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Scrollable Folders Container */}
           <div className="relative">
             {/* Folders List with Scroll */}
-            <div className={`space-y-1 max-h-48 md:max-h-56 overflow-y-auto scrollbar-thin ${
+            <div className={`space-y-1 max-h-48 md:max-h-56 overflow-y-auto ${
               darkMode 
-                ? 'scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500' 
-                : 'scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400'
+                ? 'scrollbar-w-2 scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500' 
+                : 'scrollbar-w-2 scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400'
             }`}>
             {folders.map(folder => (
               <div
@@ -359,10 +359,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Scrollable Tags Container */}
           <div className="relative">
             {/* Tags List with Scroll */}
-            <div className={`max-h-32 md:max-h-40 overflow-y-auto scrollbar-thin ${
+            <div className={`max-h-32 md:max-h-40 overflow-y-auto ${
               darkMode 
-                ? 'scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500' 
-                : 'scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400'
+                ? 'scrollbar-w-2 scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500' 
+                : 'scrollbar-w-2 scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400'
             }`}>
               <div className="flex flex-wrap gap-1.5 md:gap-2 pb-2">
                 {tags.map(tag => (

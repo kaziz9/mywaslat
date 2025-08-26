@@ -5,13 +5,14 @@
 /* Custom Scrollbar Styles */
 @layer utilities {
   /* Webkit Scrollbar */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar {
+  .scrollbar-w-2::-webkit-scrollbar {
     width: 8px;
     height: 8px;
+  }
+  
+  .scrollbar-w-3::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
   }
   
   .scrollbar-track-gray-100::-webkit-scrollbar-track {
@@ -53,8 +54,12 @@
   }
   
   /* Firefox Scrollbar */
-  .scrollbar-thin {
+  .scrollbar-w-2 {
     scrollbar-width: thin;
+  }
+  
+  .scrollbar-w-3 {
+    scrollbar-width: auto;
   }
   
   .scrollbar-track-gray-100 {
@@ -67,13 +72,20 @@
 }
 
 /* Smooth Scrolling */
-.scrollbar-thin {
+.scrollbar-w-2,
+.scrollbar-w-3 {
   scroll-behavior: smooth;
 }
 
-/* Hide scrollbar on mobile for cleaner look */
-@media (max-width: 768px) {
-  .scrollbar-thin::-webkit-scrollbar {
+/* Responsive scrollbar sizes */
+@media (max-width: 640px) {
+  .scrollbar-w-2::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-w-3::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
 }
