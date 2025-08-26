@@ -65,7 +65,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const folderIndex = folders.indexOf(folderName);
     setDraggedIndex(folderIndex);
     setDraggedFolder(folderName);
-    setIsReordering(true);
     e.dataTransfer.setData('text/plain', folderName);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -105,7 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleFolderDragOver = (e: React.DragEvent, targetFolder: string) => {
     e.preventDefault();
     const targetIndex = folders.indexOf(targetFolder);
-    if (draggedFolder && draggedFolder !== targetFolder && isReordering && draggedIndex !== null) {
+    if (draggedFolder && draggedFolder !== targetFolder && draggedIndex !== null) {
+      setIsReordering(true);
       setDraggedOverFolder(targetFolder);
       setDragOverIndex(targetIndex);
       e.dataTransfer.dropEffect = 'move';
@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const draggedFolderName = e.dataTransfer.getData('text/plain');
     const targetIndex = folders.indexOf(targetFolder);
     
-    if (draggedFolderName && draggedFolderName !== targetFolder && isReordering && draggedIndex !== null) {
+    if (draggedFolderName && draggedFolderName !== targetFolder && draggedIndex !== null) {
       // Create new array with reordered folders
       const newFolders = [...folders];
       newFolders.splice(draggedIndex, 1);
