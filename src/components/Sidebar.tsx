@@ -12,7 +12,6 @@ interface SidebarProps {
   language: 'ar' | 'en';
   onAddFolder: (folderName: string) => void;
   onDeleteFolder: (folderName: string) => void;
-  onReorderFolders: (folders: string[]) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -27,7 +26,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   language,
   onAddFolder,
   onDeleteFolder,
-  onReorderFolders,
   isOpen,
   onClose,
 }) => {
@@ -35,8 +33,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [newFolderName, setNewFolderName] = React.useState('');
   const [draggedFolder, setDraggedFolder] = React.useState<string | null>(null);
   const [isDragOverTrash, setIsDragOverTrash] = React.useState(false);
-  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
-  const [isDraggingForReorder, setIsDraggingForReorder] = React.useState(false);
 
   const menuItems = [
     { id: 'all', label: t(language, 'allLinks'), icon: Folder, count: null },
@@ -60,8 +56,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleDragStart = (e: React.DragEvent, folderName: string) => {
+    // Don't allow dragging default folders
+    const defaultFolders = ['Work', 'Study', 'Fun', 'Personal'];
+    if (defaultFolders.includes(folderName)) {
+      e.preventDefault();
+      return;
+    }
+    
     setDraggedFolder(folderName);
-    setIsDraggingForReorder(true);
     e.dataTransfer.setData('text/plain', folderName);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -69,71 +71,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleDragEnd = () => {
     setDraggedFolder(null);
     setIsDragOverTrash(false);
-    setDragOverIndex(null);
-    setIsDraggingForReorder(false);
   };
 
-  const handleTrashDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setIsDragOverTrash(true);
   };
 
-  const handleTrashDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     // Only hide if we're leaving the trash area completely
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragOverTrash(false);
     }
   };
 
-  const handleTrashDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const folderName = e.dataTransfer.getData('text/plain');
-    const defaultFolders = ['Work', 'Study', 'Fun', 'Personal'];
-    if (folderName && draggedFolder && !defaultFolders.includes(folderName)) {
+    if (folderName && draggedFolder) {
       handleDeleteFolder(folderName);
     }
     setIsDragOverTrash(false);
     setDraggedFolder(null);
-    setIsDraggingForReorder(false);
-  };
-
-  const handleFolderDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isDraggingForReorder) {
-      setDragOverIndex(index);
-      e.dataTransfer.dropEffect = 'move';
-    }
-  };
-
-  const handleFolderDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only clear if we're leaving the folder item completely
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setDragOverIndex(null);
-    }
-  };
-
-  const handleFolderDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const draggedFolderName = e.dataTransfer.getData('text/plain');
-    if (!draggedFolderName || !isDraggingForReorder) return;
-    
-    const dragIndex = folders.indexOf(draggedFolderName);
-    if (dragIndex === -1 || dragIndex === dropIndex) return;
-    
-    // Create new folders array with reordered items
-    const newFolders = [...folders];
-    const [removed] = newFolders.splice(dragIndex, 1);
-    newFolders.splice(dropIndex, 0, removed);
-    
-    onReorderFolders(newFolders);
-    setDragOverIndex(null);
-    setIsDraggingForReorder(false);
   };
 
   return (
@@ -294,24 +254,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ? 'scrollbar-w-2 scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500' 
                 : 'scrollbar-w-2 scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400'
             }`}>
-            {folders.map((folder, index) => (
+            {folders.map(folder => (
               <div
                 key={folder}
-                draggable={true}
+                draggable={!['Work', 'Study', 'Fun', 'Personal'].includes(folder)}
                 onDragStart={(e) => handleDragStart(e, folder)}
                 onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleFolderDragOver(e, index)}
-                onDragLeave={handleFolderDragLeave}
-                onDrop={(e) => handleFolderDrop(e, index)}
                 className={`group flex items-center justify-between px-3 md:px-4 py-2.5 md:py-2 rounded-lg transition-all duration-200 cursor-pointer ${
                   draggedFolder === folder 
-                    ? 'opacity-50 scale-95 rotate-1 shadow-lg' 
-                    : ''
-                } ${
-                  dragOverIndex === index && isDraggingForReorder && draggedFolder !== folder
-                    ? darkMode
-                      ? 'border-t-2 border-blue-400 bg-blue-900/20'
-                      : 'border-t-2 border-blue-400 bg-blue-50'
+                    ? 'opacity-50 scale-95 rotate-2' 
                     : ''
                 } ${
                   currentView === `folder:${folder}`
@@ -321,7 +272,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : darkMode 
                       ? 'text-gray-400 hover:bg-gray-700' 
                       : 'text-gray-500 hover:bg-gray-50'
-                } hover:shadow-md`}
+                } ${
+                  !['Work', 'Study', 'Fun', 'Personal'].includes(folder) 
+                    ? 'hover:shadow-md' 
+                    : ''
+                }`}
               >
                 <button
                   onClick={() => {
@@ -331,18 +286,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onClose();
                     }
                   }}
-                  className={`flex items-center space-x-3 flex-1 text-right ${
-                    isDraggingForReorder && draggedFolder === folder ? 'pointer-events-none' : ''
-                  }`}
+                  className="flex items-center space-x-3 flex-1 text-right"
                 >
-                  <div className="flex items-center space-x-1">
-                    <div className={`w-1 h-4 rounded-full transition-all duration-200 ${
-                      isDraggingForReorder && draggedFolder === folder
-                        ? 'bg-blue-500'
-                        : 'bg-transparent group-hover:bg-gray-400'
-                    }`} />
-                    <Folder className="w-5 h-5 shrink-0" />
-                  </div>
+                  <Folder className="w-5 h-5 shrink-0" />
                   <span className="font-medium text-sm">
                     {['Work', 'Study', 'Fun', 'Personal'].includes(folder) 
                       ? t(language, folder.toLowerCase()) 
@@ -369,11 +315,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Drag to Delete Area */}
-        {draggedFolder && !['Work', 'Study', 'Fun', 'Personal'].includes(draggedFolder) && (
+        {draggedFolder && (
           <div
-            onDragOver={handleTrashDragOver}
-            onDragLeave={handleTrashDragLeave}
-            onDrop={handleTrashDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             className={`fixed bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 p-4 md:p-6 rounded-xl border-2 border-dashed transition-all duration-300 z-50 ${
               isDragOverTrash
                 ? darkMode

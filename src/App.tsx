@@ -41,12 +41,6 @@ function App() {
   const [selectedLinks, setSelectedLinks] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-  const handleReorderFolders = (reorderedFolders: string[]) => {
-    setCustomFolders(reorderedFolders.filter(folder => 
-      !['Work', 'Study', 'Fun', 'Personal'].includes(folder)
-    ));
-  };
-
   // Close sidebar when clicking outside on mobile
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -526,7 +520,6 @@ function App() {
           language={language}
           onAddFolder={handleAddFolder}
           onDeleteFolder={handleDeleteFolder}
-          onReorderFolders={handleReorderFolders}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onOpenAbout={() => setIsAboutModalOpen(true)}

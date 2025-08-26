@@ -168,11 +168,7 @@ export const translations = {
     importPreview: 'معاينة استيراد البيانات',
     importWarning: 'سيتم استبدال جميع البيانات الحالية بالبيانات المستوردة. لا يمكن التراجع عن هذا الإجراء.',
     confirmImport: 'تأكيد الاستيراد',
-    cancelImport: 'إلغاء الاستيراد',
-
-    // Drag and Drop Reorder
-    dragToReorder: 'اسحب لإعادة الترتيب',
-    dropToReorder: 'اتركه هنا لإعادة الترتيب'
+    cancelImport: 'إلغاء الاستيراد'
   },
   en: {
     // Header
@@ -364,11 +360,7 @@ export const translations = {
     importPreview: 'Import Data Preview',
     importWarning: 'All current data will be replaced with the imported data. This action cannot be undone.',
     confirmImport: 'Confirm Import',
-    cancelImport: 'Cancel Import',
-
-    // Drag and Drop Reorder
-    dragToReorder: 'Drag to reorder',
-    dropToReorder: 'Drop here to reorder'
+    cancelImport: 'Cancel Import'
   }
 };
 
