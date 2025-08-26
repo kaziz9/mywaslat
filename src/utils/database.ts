@@ -21,7 +21,8 @@ export const saveLinks = (links: Link[]): void => {
   try {
     const serializedLinks = links.map(link => ({
       ...link,
-      createdAt: link.createdAt.toISOString()
+      createdAt: link.createdAt.toISOString(),
+      deletedAt: link.deletedAt?.toISOString()
     }));
     saveState(DATA_KEYS.LINKS, serializedLinks);
   } catch (error) {
@@ -36,7 +37,10 @@ export const loadLinks = (): Link[] => {
     
     return stored.map((link: any) => ({
       ...link,
-      createdAt: new Date(link.createdAt)
+      createdAt: new Date(link.createdAt),
+      deletedAt: link.deletedAt ? new Date(link.deletedAt) : undefined,
+      isDeleted: link.isDeleted || false,
+      originalFolder: link.originalFolder
     }));
   } catch (error) {
     console.error('Error loading links:', error);
