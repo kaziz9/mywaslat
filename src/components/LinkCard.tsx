@@ -261,7 +261,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                     darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Share2 className="w-5 h-5 sm:w-5 sm:h-5" />
                 </button>
               </>
             )}
@@ -277,7 +277,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
               }`}
               disabled={isTrashView}
             >
-              <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ExternalLink className="w-5 h-5 sm:w-5 sm:h-5" />
             </button>
           </div>
         )}
@@ -327,7 +327,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                   } shadow-sm`}
                   title={t(language, 'restoreFromTrash')}
                 >
-                  <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <RotateCcw className="w-4 h-4 sm:w-4 sm:h-4" />
                 </button>
               ) : (
                 <button
@@ -337,7 +337,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                   } shadow-sm`}
                   title={t(language, 'editLink')}
                 >
-                  <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Edit className="w-4 h-4 sm:w-4 sm:h-4" />
                 </button>
               )}
               <button
@@ -347,7 +347,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                 } shadow-sm`}
                 title={isTrashView ? t(language, 'deleteForever') : t(language, 'moveToTrash')}
               >
-                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Trash2 className="w-4 h-4 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
@@ -412,7 +412,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                     }`}
                     title={t(language, 'restore')}
                   >
-                    <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <RotateCcw className="w-4 h-4 sm:w-4 sm:h-4" />
                   </button>
                 ) : (
                   <button
@@ -423,7 +423,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                         : darkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'
                     }`}
                   >
-                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${link.isFavorite ? 'fill-current' : ''}`} />
+                    <Heart className={`w-4 h-4 sm:w-4 sm:h-4 ${link.isFavorite ? 'fill-current' : ''}`} />
                   </button>
                 )}
 
@@ -438,7 +438,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                   }`}
                   disabled={isTrashView}
                 >
-                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <ExternalLink className="w-4 h-4 sm:w-4 sm:h-4" />
                 </button>
               </div>
             )}
@@ -489,7 +489,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                 } shadow-sm`}
                 title={t(language, 'restoreFromTrash')}
               >
-                <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+                <RotateCcw className="w-5 h-5 sm:w-5 sm:h-5" />
               </button>
             ) : (
               <button
@@ -499,7 +499,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                 } shadow-sm`}
                 title={t(language, 'editLink')}
               >
-                <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Edit className="w-5 h-5 sm:w-5 sm:h-5" />
               </button>
             )}
             <button
@@ -509,7 +509,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
               } shadow-sm`}
               title={isTrashView ? t(language, 'deleteForever') : t(language, 'moveToTrash')}
             >
-              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Trash2 className="w-5 h-5 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
@@ -624,7 +624,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                   }`}
                   title={t(language, 'restore')}
                 >
-                  <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <RotateCcw className="w-5 h-5 sm:w-5 sm:h-5" />
                 </button>
               ) : (
                 <>
@@ -636,7 +636,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                         : darkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'
                     }`}
                   >
-                    <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${link.isFavorite ? 'fill-current' : ''}`} />
+                    <Heart className={`w-5 h-5 sm:w-5 sm:h-5 ${link.isFavorite ? 'fill-current' : ''}`} />
                   </button>
 
                   <button
@@ -647,7 +647,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                         : darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-500'
                     }`}
                   >
-                    <Bookmark className={`w-4 h-4 sm:w-5 sm:h-5 ${link.readLater ? 'fill-current' : ''}`} />
+                    <Bookmark className={`w-5 h-5 sm:w-5 sm:h-5 ${link.readLater ? 'fill-current' : ''}`} />
                   </button>
 
                   <button
@@ -656,7 +656,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                       darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                    <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Share2 className="w-5 h-5 sm:w-5 sm:h-5" />
                   </button>
                 </>
               )}
@@ -672,7 +672,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                 }`}
                 disabled={isTrashView}
               >
-                <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ExternalLink className="w-5 h-5 sm:w-5 sm:h-5" />
               </button>
             </div>
           )}
