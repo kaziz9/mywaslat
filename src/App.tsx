@@ -80,6 +80,14 @@ function App() {
   const filteredLinks = useMemo(() => {
     let filtered = [...links];
 
+    // Apply trash filter first
+    if (currentView === 'trash') {
+      filtered = filtered.filter(link => link.isDeleted);
+    } else {
+      // For all other views, exclude deleted links
+      filtered = filtered.filter(link => !link.isDeleted);
+    }
+
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(link =>
@@ -97,6 +105,9 @@ function App() {
       case 'read-later':
         filtered = filtered.filter(link => link.readLater);
         break;
+      case 'trash':
+        // Already filtered above
+        break;
       default:
         if (currentView.startsWith('folder:')) {
           const folder = currentView.split(':')[1];
@@ -108,8 +119,19 @@ function App() {
     }
 
     // Sort by creation date (newest first)
-    return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    if (currentView === 'trash') {
+      return filtered.sort((a, b) => {
+        const aDate = a.deletedAt || a.createdAt;
+        const bDate = b.deletedAt || b.createdAt;
+        return bDate.getTime() - aDate.getTime();
+      });
+    } else {
+      return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
   }, [links, searchTerm, currentView]);
+
+  // Calculate trash count
+  const trashCount = links.filter(link => link.isDeleted).length;
 
   const handleAddFolder = (folderName: string) => {
     if (!customFolders.includes(folderName)) {
@@ -187,25 +209,97 @@ function App() {
   };
 
   const handleDeleteLink = (id: string) => {
-    setLinks(prev => {
-      const updatedLinks = prev.filter(link => link.id !== id);
-      // Force save to database immediately
-      saveLinksToDb(updatedLinks);
-      return updatedLinks;
-    });
-    
-    // Clear any cached data
-    if (typeof window !== 'undefined') {
-      // Clear from session storage if exists
-      try {
-        sessionStorage.removeItem(`link_${id}`);
-      } catch (e) {
-        // Ignore errors
+    const link = links.find(l => l.id === id);
+    if (!link) return;
+
+    if (currentView === 'trash') {
+      // If we're in trash view, delete permanently
+      if (window.confirm(t(language, 'deleteForeverConfirm', { title: link.title }))) {
+        setLinks(prev => {
+          const updatedLinks = prev.filter(link => link.id !== id);
+          saveLinksToDb(updatedLinks);
+          return updatedLinks;
+        });
+        
+        // Clear any cached data
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.removeItem(`link_${id}`);
+          } catch (e) {
+            // Ignore errors
+          }
+          
+          if (window.gc) {
+            window.gc();
+          }
+        }
       }
+    } else {
+      // Move to trash
+      if (window.confirm(t(language, 'moveToTrashConfirm', { title: link.title }))) {
+        setLinks(prev => prev.map(link => 
+          link.id === id 
+            ? { 
+                ...link, 
+                isDeleted: true, 
+                deletedAt: new Date(),
+                originalFolder: link.folder
+              } 
+            : link
+        ));
+      }
+    }
+  };
+
+  const handleRestoreLink = (id: string) => {
+    const link = links.find(l => l.id === id);
+    if (!link) return;
+
+    const targetFolder = link.originalFolder || 'Personal';
+    if (window.confirm(t(language, 'restoreConfirm', { 
+      title: link.title, 
+      folder: ['Work', 'Study', 'Fun', 'Personal'].includes(targetFolder) 
+        ? t(language, targetFolder.toLowerCase()) 
+        : targetFolder 
+    }))) {
+      setLinks(prev => prev.map(link => 
+        link.id === id 
+          ? { 
+              ...link, 
+              isDeleted: false, 
+              deletedAt: undefined,
+              folder: targetFolder,
+              originalFolder: undefined
+            } 
+          : link
+      ));
+    }
+  };
+
+  const handleEmptyTrash = () => {
+    const trashedLinks = links.filter(link => link.isDeleted);
+    if (trashedLinks.length === 0) return;
+
+    if (window.confirm(t(language, 'emptyTrashConfirm'))) {
+      setLinks(prev => {
+        const updatedLinks = prev.filter(link => !link.isDeleted);
+        saveLinksToDb(updatedLinks);
+        return updatedLinks;
+      });
       
-      // Force garbage collection if available
-      if (window.gc) {
-        window.gc();
+      // Clear cached data for deleted links
+      if (typeof window !== 'undefined') {
+        trashedLinks.forEach(link => {
+          try {
+            sessionStorage.removeItem(`link_${link.id}`);
+          } catch (e) {
+            // Ignore errors
+          }
+        });
+        
+        if (window.gc) {
+          window.gc();
+        }
       }
     }
   };
@@ -229,36 +323,56 @@ function App() {
   const handleBulkDelete = () => {
     if (selectedLinks.length === 0) return;
     
-    const confirmMessage = selectedLinks.length === 1 
-      ? t(language, 'deleteLinkConfirm', { title: links.find(l => l.id === selectedLinks[0])?.title || '' })
-      : t(language, 'deleteSelectedLinksConfirm', { count: selectedLinks.length.toString() });
-    
-    if (window.confirm(confirmMessage)) {
-      setLinks(prev => {
-        const updatedLinks = prev.filter(link => !selectedLinks.includes(link.id));
-        // Force save to database immediately
-        saveLinksToDb(updatedLinks);
-        return updatedLinks;
-      });
+    if (currentView === 'trash') {
+      // Delete forever
+      const confirmMessage = t(language, 'deleteForeverSelectedConfirm', { count: selectedLinks.length.toString() });
       
-      // Clear cached data for deleted links
-      if (typeof window !== 'undefined') {
-        selectedLinks.forEach(id => {
-          try {
-            sessionStorage.removeItem(`link_${id}`);
-          } catch (e) {
-            // Ignore errors
-          }
+      if (window.confirm(confirmMessage)) {
+        setLinks(prev => {
+          const updatedLinks = prev.filter(link => !selectedLinks.includes(link.id));
+          saveLinksToDb(updatedLinks);
+          return updatedLinks;
         });
         
-        // Force garbage collection if available
-        if (window.gc) {
-          window.gc();
+        // Clear cached data for deleted links
+        if (typeof window !== 'undefined') {
+          selectedLinks.forEach(id => {
+            try {
+              sessionStorage.removeItem(`link_${id}`);
+            } catch (e) {
+              // Ignore errors
+            }
+          });
+          
+          if (window.gc) {
+            window.gc();
+          }
         }
+        
+        setSelectedLinks([]);
+        setIsSelectionMode(false);
       }
+    } else {
+      // Move to trash
+      const confirmMessage = selectedLinks.length === 1 
+        ? t(language, 'moveToTrashConfirm', { title: links.find(l => l.id === selectedLinks[0])?.title || '' })
+        : t(language, 'deleteSelectedLinksConfirm', { count: selectedLinks.length.toString() });
       
-      setSelectedLinks([]);
-      setIsSelectionMode(false);
+      if (window.confirm(confirmMessage)) {
+        setLinks(prev => prev.map(link => 
+          selectedLinks.includes(link.id) 
+            ? { 
+                ...link, 
+                isDeleted: true, 
+                deletedAt: new Date(),
+                originalFolder: link.folder
+              } 
+            : link
+        ));
+        
+        setSelectedLinks([]);
+        setIsSelectionMode(false);
+      }
     }
   };
 
@@ -286,6 +400,29 @@ function App() {
     }
   };
 
+  const handleBulkRestore = () => {
+    if (selectedLinks.length === 0) return;
+    
+    const confirmMessage = t(language, 'restoreSelectedConfirm', { count: selectedLinks.length.toString() });
+    
+    if (window.confirm(confirmMessage)) {
+      setLinks(prev => prev.map(link => 
+        selectedLinks.includes(link.id) 
+          ? { 
+              ...link, 
+              isDeleted: false, 
+              deletedAt: undefined,
+              folder: link.originalFolder || 'Personal',
+              originalFolder: undefined
+            } 
+          : link
+      ));
+      
+      setSelectedLinks([]);
+      setIsSelectionMode(false);
+    }
+  };
+
   const handleCancelSelection = () => {
     setSelectedLinks([]);
     setIsSelectionMode(false);
@@ -307,6 +444,7 @@ function App() {
       case 'all': return t(language, 'allLinks');
       case 'favorites': return t(language, 'favorites');
       case 'read-later': return t(language, 'readLater');
+      case 'trash': return t(language, 'trash');
       default:
         if (currentView.startsWith('folder:')) {
           const folderName = currentView.split(':')[1];
@@ -358,6 +496,7 @@ function App() {
           onViewChange={setCurrentView}
           folders={folders}
           tags={allTags}
+          trashCount={trashCount}
           language={language}
           onAddFolder={handleAddFolder}
           onDeleteFolder={handleDeleteFolder}
@@ -380,7 +519,11 @@ function App() {
                 }`}>
                   {isSelectionMode 
                     ? `${selectedLinks.length} ${t(language, 'selected')} / ${filteredLinks.length} ${t(language, 'links')}`
-                    : `${filteredLinks.length} ${t(language, 'links')}`
+                    : currentView === 'trash' && filteredLinks.length > 0
+                      ? t(language, 'itemsInTrash', { count: filteredLinks.length.toString() })
+                      : filteredLinks.length === 0 && currentView === 'trash'
+                        ? t(language, 'noItemsInTrash')
+                        : `${filteredLinks.length} ${t(language, 'links')}`
                   }
                 </p>
               </div>
@@ -410,27 +553,55 @@ function App() {
                     
                     {selectedLinks.length > 0 && (
                       <>
-                        <button
-                          onClick={handleBulkShare}
-                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                            darkMode 
-                              ? 'bg-green-900 text-green-200 hover:bg-green-800' 
-                              : 'bg-green-100 text-green-800 hover:bg-green-200'
-                          }`}
-                        >
-                          {t(language, 'shareSelected')}
-                        </button>
+                        {currentView !== 'trash' && (
+                          <button
+                            onClick={handleBulkShare}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                              darkMode 
+                                ? 'bg-green-900 text-green-200 hover:bg-green-800' 
+                                : 'bg-green-100 text-green-800 hover:bg-green-200'
+                            }`}
+                          >
+                            {t(language, 'shareSelected')}
+                          </button>
+                        )}
                         
-                        <button
-                          onClick={handleBulkDelete}
-                          className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                            darkMode 
-                              ? 'bg-red-900 text-red-200 hover:bg-red-800' 
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
-                          }`}
-                        >
-                          {t(language, 'deleteSelected')}
-                        </button>
+                        {currentView === 'trash' ? (
+                          <>
+                            <button
+                              onClick={handleBulkRestore}
+                              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                                darkMode 
+                                  ? 'bg-green-900 text-green-200 hover:bg-green-800' 
+                                  : 'bg-green-100 text-green-800 hover:bg-green-200'
+                              }`}
+                            >
+                              {t(language, 'restoreSelected')}
+                            </button>
+                            
+                            <button
+                              onClick={handleBulkDelete}
+                              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                                darkMode 
+                                  ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+                              }`}
+                            >
+                              {t(language, 'deleteForeverSelected')}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={handleBulkDelete}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                              darkMode 
+                                ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                                : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            }`}
+                          >
+                            {t(language, 'deleteSelected')}
+                          </button>
+                        )}
                       </>
                     )}
                     
@@ -448,6 +619,20 @@ function App() {
                 ) : (
                   /* Normal Mode Controls */
                   <>
+                    {/* Empty Trash Button */}
+                    {currentView === 'trash' && filteredLinks.length > 0 && (
+                      <button
+                        onClick={handleEmptyTrash}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          darkMode 
+                            ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        }`}
+                      >
+                        {t(language, 'emptyTrash')}
+                      </button>
+                    )}
+                    
                     {filteredLinks.length > 0 && (
                       <button
                         onClick={() => setIsSelectionMode(true)}
@@ -462,49 +647,51 @@ function App() {
                     )}
                     
                     {/* View Layout Options */}
-                <div className={`flex rounded-lg border ${
-                  darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-white'
-                }`}>
-                  <button
-                    onClick={() => setViewLayout('grid')}
-                    className={`p-1.5 sm:p-2 rounded-l-lg transition-colors ${
-                      viewLayout === 'grid'
-                        ? 'bg-blue-600 text-white'
-                        : darkMode 
-                          ? 'text-gray-300 hover:bg-gray-600' 
-                          : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    title={t(language, 'gridView')}
-                  >
-                    <Grid3X3 className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setViewLayout('compact')}
-                    className={`p-1.5 sm:p-2 transition-colors ${
-                      viewLayout === 'compact'
-                        ? 'bg-blue-600 text-white'
-                        : darkMode 
-                          ? 'text-gray-300 hover:bg-gray-600' 
-                          : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    title={t(language, 'compactView')}
-                  >
-                    <Grid2X2 className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setViewLayout('list')}
-                    className={`p-1.5 sm:p-2 rounded-r-lg transition-colors ${
-                      viewLayout === 'list'
-                        ? 'bg-blue-600 text-white'
-                        : darkMode 
-                          ? 'text-gray-300 hover:bg-gray-600' 
-                          : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  title={t(language, 'listView')}
-                  >
-                    <List className="w-5 h-5" />
-                  </button>
-                </div>
+                    {currentView !== 'trash' && (
+                      <div className={`flex rounded-lg border ${
+                        darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-white'
+                      }`}>
+                        <button
+                          onClick={() => setViewLayout('grid')}
+                          className={`p-1.5 sm:p-2 rounded-l-lg transition-colors ${
+                            viewLayout === 'grid'
+                              ? 'bg-blue-600 text-white'
+                              : darkMode 
+                                ? 'text-gray-300 hover:bg-gray-600' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                          title={t(language, 'gridView')}
+                        >
+                          <Grid3X3 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setViewLayout('compact')}
+                          className={`p-1.5 sm:p-2 transition-colors ${
+                            viewLayout === 'compact'
+                              ? 'bg-blue-600 text-white'
+                              : darkMode 
+                                ? 'text-gray-300 hover:bg-gray-600' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                          title={t(language, 'compactView')}
+                        >
+                          <Grid2X2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setViewLayout('list')}
+                          className={`p-1.5 sm:p-2 rounded-r-lg transition-colors ${
+                            viewLayout === 'list'
+                              ? 'bg-blue-600 text-white'
+                              : darkMode 
+                                ? 'text-gray-300 hover:bg-gray-600' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                          title={t(language, 'listView')}
+                        >
+                          <List className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -539,6 +726,7 @@ function App() {
                     darkMode={darkMode}
                     viewLayout={viewLayout}
                     language={language}
+                    isTrashView={currentView === 'trash'}
                     isSelectionMode={isSelectionMode}
                     isSelected={selectedLinks.includes(link.id)}
                     onToggleSelection={handleToggleSelection}
@@ -547,6 +735,7 @@ function App() {
                     onShare={handleShare}
                     onEdit={handleEditLink}
                     onDelete={handleDeleteLink}
+                    onRestore={handleRestoreLink}
                   />
                 ))}
               </div>
@@ -556,12 +745,14 @@ function App() {
       </div>
 
       {/* Floating Action Button */}
-      <button
-        onClick={() => setIsAddModalOpen(true)}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200 flex items-center justify-center z-30"
-      >
-        <Plus className="w-7 h-7 md:w-8 md:h-8" />
-      </button>
+      {currentView !== 'trash' && (
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200 flex items-center justify-center z-30"
+        >
+          <Plus className="w-7 h-7 md:w-8 md:h-8" />
+        </button>
+      )}
 
       <AddLinkModal
         isOpen={isAddModalOpen}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Folder, Tag, Bookmark, Heart, Settings, Plus, X, Trash2, Info } from 'lucide-react';
+import { Folder, Tag, Bookmark, Heart, Settings, Plus, X, Trash2, Info, RotateCcw } from 'lucide-react';
 import { t } from '../utils/translations';
 
 interface SidebarProps {
@@ -8,6 +8,7 @@ interface SidebarProps {
   onViewChange: (view: string) => void;
   folders: string[];
   tags: string[];
+  trashCount: number;
   language: 'ar' | 'en';
   onAddFolder: (folderName: string) => void;
   onDeleteFolder: (folderName: string) => void;
@@ -21,6 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onViewChange,
   folders,
   tags,
+  trashCount,
   language,
   onAddFolder,
   onDeleteFolder,
@@ -36,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'all', label: t(language, 'allLinks'), icon: Folder, count: null },
     { id: 'favorites', label: t(language, 'favorites'), icon: Heart, count: null },
     { id: 'read-later', label: t(language, 'readLater'), icon: Bookmark, count: null },
+    { id: 'trash', label: t(language, 'trash'), icon: Trash2, count: trashCount },
   ];
 
   const handleAddFolder = () => {
@@ -159,7 +162,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               >
                 <Icon className="w-6 h-6 shrink-0" />
-                <span className="font-medium text-sm md:text-base">{item.label}</span>
+                <div className="flex items-center justify-between flex-1">
+                  <span className="font-medium text-sm md:text-base">{item.label}</span>
+                  {item.count !== null && item.count > 0 && (
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      item.id === 'trash'
+                        ? darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
+                        : darkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {item.count}
+                    </span>
+                  )}
+                </div>
               </button>
             );
           })}

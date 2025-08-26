@@ -120,6 +120,26 @@ export const translations = {
     selectedLinksCopied: 'تم نسخ الروابط المحددة إلى الحافظة',
     deleteSelectedLinksConfirm: 'هل أنت متأكد من حذف {count} رابط محدد؟',
 
+    // Trash System
+    trash: 'سلة المحذوفات',
+    moveToTrash: 'نقل إلى سلة المحذوفات',
+    restoreFromTrash: 'استعادة من سلة المحذوفات',
+    deleteForever: 'حذف نهائي',
+    emptyTrash: 'إفراغ سلة المحذوفات',
+    moveToTrashConfirm: 'هل تريد نقل "{title}" إلى سلة المحذوفات؟',
+    deleteForeverConfirm: 'هل أنت متأكد من الحذف النهائي لـ "{title}"؟\n\nلا يمكن التراجع عن هذا الإجراء!',
+    emptyTrashConfirm: 'هل أنت متأكد من إفراغ سلة المحذوفات؟\n\nسيتم حذف جميع العناصر نهائياً ولا يمكن التراجع عن هذا الإجراء!',
+    restoreConfirm: 'هل تريد استعادة "{title}" إلى مجلد "{folder}"؟',
+    itemsInTrash: '{count} عنصر في سلة المحذوفات',
+    noItemsInTrash: 'سلة المحذوفات فارغة',
+    deletedOn: 'تم الحذف في: {date}',
+    originalFolder: 'المجلد الأصلي: {folder}',
+    restore: 'استعادة',
+    deleteForeverSelected: 'حذف المحدد نهائياً',
+    restoreSelected: 'استعادة المحدد',
+    deleteForeverSelectedConfirm: 'هل أنت متأكد من الحذف النهائي لـ {count} عنصر محدد؟\n\nلا يمكن التراجع عن هذا الإجراء!',
+    restoreSelectedConfirm: 'هل تريد استعادة {count} عنصر محدد إلى مجلداتهم الأصلية؟',
+
     // Data Management
     dataManagement: 'إدارة البيانات',
     dataStatistics: 'إحصائيات البيانات',
@@ -291,6 +311,26 @@ export const translations = {
     selectedLinks: 'Selected Links',
     selectedLinksCopied: 'Selected links copied to clipboard',
     deleteSelectedLinksConfirm: 'Are you sure you want to delete {count} selected links?',
+
+    // Trash System
+    trash: 'Trash',
+    moveToTrash: 'Move to Trash',
+    restoreFromTrash: 'Restore from Trash',
+    deleteForever: 'Delete Forever',
+    emptyTrash: 'Empty Trash',
+    moveToTrashConfirm: 'Do you want to move "{title}" to trash?',
+    deleteForeverConfirm: 'Are you sure you want to permanently delete "{title}"?\n\nThis action cannot be undone!',
+    emptyTrashConfirm: 'Are you sure you want to empty the trash?\n\nAll items will be permanently deleted and this action cannot be undone!',
+    restoreConfirm: 'Do you want to restore "{title}" to "{folder}" folder?',
+    itemsInTrash: '{count} items in trash',
+    noItemsInTrash: 'Trash is empty',
+    deletedOn: 'Deleted on: {date}',
+    originalFolder: 'Original folder: {folder}',
+    restore: 'Restore',
+    deleteForeverSelected: 'Delete Selected Forever',
+    restoreSelected: 'Restore Selected',
+    deleteForeverSelectedConfirm: 'Are you sure you want to permanently delete {count} selected items?\n\nThis action cannot be undone!',
+    restoreSelectedConfirm: 'Do you want to restore {count} selected items to their original folders?',
 
     // Data Management
     dataManagement: 'Data Management',
