@@ -1,4 +1,4 @@
-const translations = {
+export const translations = {
   ar: {
     // Header
     appName: 'MyWaslat',
@@ -318,7 +318,7 @@ const translations = {
   }
 };
 
-const getTranslation = (language: 'ar' | 'en', key: string): string => {
+export const getTranslation = (language: 'ar' | 'en', key: string): string => {
   const keys = key.split('.');
   let value: any = translations[language];
   

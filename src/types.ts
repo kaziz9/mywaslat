@@ -11,11 +11,11 @@ export interface Link {
   createdAt: Date;
 }
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
   avatar?: string;
 }
 
-type Language = 'ar' | 'en';
+export type Language = 'ar' | 'en';
