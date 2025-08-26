@@ -41,6 +41,26 @@ function App() {
   const [selectedLinks, setSelectedLinks] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+  // Close sidebar when clicking outside on mobile
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isSidebarOpen && window.innerWidth < 768) {
+        const sidebar = document.querySelector('[data-sidebar]');
+        const menuButton = document.querySelector('[data-menu-button]');
+        
+        if (sidebar && !sidebar.contains(event.target as Node) && 
+            menuButton && !menuButton.contains(event.target as Node)) {
+          setIsSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSidebarOpen]);
+
   // Load data when database is initialized
   React.useEffect(() => {
     if (isInitialized) {

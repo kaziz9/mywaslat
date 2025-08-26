@@ -150,6 +150,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   if (window.innerWidth < 768) {
                     onClose();
                   }
+                  // Close sidebar on mobile after selection
+                  if (window.innerWidth < 768) {
+                    onClose();
+                  }
+                  // Close sidebar on mobile after selection
+                  if (window.innerWidth < 768) {
+                    onClose();
+                  }
                 }}
                 className={`w-full flex items-center space-x-3 px-3 md:px-4 py-3 rounded-lg text-right transition-all duration-200 ${
                   currentView === item.id
@@ -362,6 +370,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={tag}
                     onClick={() => {
                       onViewChange(`tag:${tag}`);
+                      // Close sidebar on mobile after selection
+                      if (window.innerWidth < 768) {
+                        onClose();
+                      }
                       // Close sidebar on mobile after selection
                       if (window.innerWidth < 768) {
                         onClose();
