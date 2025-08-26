@@ -12,6 +12,7 @@ interface SidebarProps {
   language: 'ar' | 'en';
   onAddFolder: (folderName: string) => void;
   onDeleteFolder: (folderName: string) => void;
+  onReorderFolders: (folders: string[]) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   language,
   onAddFolder,
   onDeleteFolder,
+  onReorderFolders,
   isOpen,
   onClose,
 }) => {
@@ -33,6 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [newFolderName, setNewFolderName] = React.useState('');
   const [draggedFolder, setDraggedFolder] = React.useState<string | null>(null);
   const [isDragOverTrash, setIsDragOverTrash] = React.useState(false);
+  const [draggedOverFolder, setDraggedOverFolder] = React.useState<string | null>(null);
+  const [isReordering, setIsReordering] = React.useState(false);
 
   const menuItems = [
     { id: 'all', label: t(language, 'allLinks'), icon: Folder, count: null },
@@ -64,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
     
     setDraggedFolder(folderName);
+    setIsReordering(true);
     e.dataTransfer.setData('text/plain', folderName);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -71,6 +76,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleDragEnd = () => {
     setDraggedFolder(null);
     setIsDragOverTrash(false);
+    setDraggedOverFolder(null);
+    setIsReordering(false);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -94,6 +101,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
     setIsDragOverTrash(false);
     setDraggedFolder(null);
+  };
+
+  const handleFolderDragOver = (e: React.DragEvent, targetFolder: string) => {
+    e.preventDefault();
+    if (draggedFolder && draggedFolder !== targetFolder && isReordering) {
+      setDraggedOverFolder(targetFolder);
+      e.dataTransfer.dropEffect = 'move';
+    }
+  };
+
+  const handleFolderDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDraggedOverFolder(null);
+    }
+  };
+
+  const handleFolderDrop = (e: React.DragEvent, targetFolder: string) => {
+    e.preventDefault();
+    const draggedFolderName = e.dataTransfer.getData('text/plain');
+    
+    if (draggedFolderName && draggedFolderName !== targetFolder && isReordering) {
+      // Find indices
+      const draggedIndex = folders.indexOf(draggedFolderName);
+      const targetIndex = folders.indexOf(targetFolder);
+      
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        // Create new array with reordered folders
+        const newFolders = [...folders];
+        newFolders.splice(draggedIndex, 1);
+        newFolders.splice(targetIndex, 0, draggedFolderName);
+        
+        onReorderFolders(newFolders);
+      }
+    }
+    
+    setDraggedOverFolder(null);
+    setDraggedFolder(null);
+    setIsReordering(false);
   };
 
   return (
@@ -260,9 +305,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 draggable={!['Work', 'Study', 'Fun', 'Personal'].includes(folder)}
                 onDragStart={(e) => handleDragStart(e, folder)}
                 onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleFolderDragOver(e, folder)}
+                onDragLeave={handleFolderDragLeave}
+                onDrop={(e) => handleFolderDrop(e, folder)}
                 className={`group flex items-center justify-between px-3 md:px-4 py-2.5 md:py-2 rounded-lg transition-all duration-200 cursor-pointer ${
                   draggedFolder === folder 
                     ? 'opacity-50 scale-95 rotate-2' 
+                    : ''
+                } ${
+                  draggedOverFolder === folder && isReordering
+                    ? darkMode 
+                      ? 'bg-blue-800 border-2 border-blue-500 border-dashed' 
+                      : 'bg-blue-50 border-2 border-blue-300 border-dashed'
                     : ''
                 } ${
                   currentView === `folder:${folder}`
@@ -274,7 +328,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-gray-500 hover:bg-gray-50'
                 } ${
                   !['Work', 'Study', 'Fun', 'Personal'].includes(folder) 
-                    ? 'hover:shadow-md' 
+                    ? 'hover:shadow-md cursor-move' 
                     : ''
                 }`}
               >
@@ -294,6 +348,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       ? t(language, folder.toLowerCase()) 
                       : folder
                     }
+                    {!['Work', 'Study', 'Fun', 'Personal'].includes(folder) && (
+                      <span className={`ml-2 text-xs opacity-50 ${
+                        darkMode ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
+                        ⋮⋮
+                      </span>
+                    )}
                   </span>
                 </button>
                 {!['Work', 'Study', 'Fun', 'Personal'].includes(folder) && (

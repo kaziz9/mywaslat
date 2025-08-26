@@ -181,6 +181,13 @@ function App() {
     }
   };
 
+  const handleReorderFolders = (reorderedFolders: string[]) => {
+    // Update custom folders order (excluding default folders)
+    const defaultFolders = ['Work', 'Study', 'Fun', 'Personal'];
+    const customFoldersOnly = reorderedFolders.filter(folder => !defaultFolders.includes(folder));
+    setCustomFolders(customFoldersOnly);
+  };
+
   const handleToggleFavorite = (id: string) => {
     setLinks(prev => prev.map(link =>
       link.id === id ? { ...link, isFavorite: !link.isFavorite } : link
@@ -520,6 +527,7 @@ function App() {
           language={language}
           onAddFolder={handleAddFolder}
           onDeleteFolder={handleDeleteFolder}
+          onReorderFolders={handleReorderFolders}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onOpenAbout={() => setIsAboutModalOpen(true)}
