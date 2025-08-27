@@ -9,6 +9,9 @@ export interface Link {
   isFavorite: boolean;
   readLater: boolean;
   createdAt: Date;
+  isDeleted?: boolean;
+  deletedAt?: Date;
+  originalFolder?: string;
 }
 
 export interface User {

@@ -45,6 +45,7 @@ export function Layout({
             <div className="flex items-center space-x-3 sm:space-x-4">
               <button
                 onClick={onToggleSidebar}
+                data-menu-button
                 className={`p-1.5 sm:p-2 rounded-lg transition-colors md:hidden ${
                   darkMode 
                     ? 'text-gray-300 hover:bg-gray-700' 
